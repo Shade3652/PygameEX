@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 import pygame
 
 if TYPE_CHECKING:   #This is a step that comes after python evaluates all imports but right before it type checks, so it'll import the class JUST in time for use!
-    from Pygame import PygameEX
+    from PygameEX import PygameEX
 
 
 class ScreenObject():
