@@ -121,3 +121,41 @@ class ScreenButton(ScreenObject):
         text_surf = self.font.render(self.text, True, self.text_color)
         text_rect = text_surf.get_rect(center=self.rect.center)
         window.blit(text_surf, text_rect)
+
+class ScreenTextBox(ScreenObject):
+    def __init__(self, x: int, y: int, width: int, height: int, max_len: int = None, color: tuple[int, int, int] = (255, 255, 255), default_text: str = "Type here", 
+                 default_text_color: tuple[int, int, int] = (175, 175, 175), text_color: tuple[int, int, int] = (0, 0, 0), text_size: int = 20, text_font: str = "Arial"):
+
+        super().__init__(x, y, width, height)
+        self.default_text = default_text
+        self.color = color,
+        self.default_text_color = default_text_color
+        self.text_color = text_color
+        self.font = pygame.font.SysFont(text_font, text_size)
+        self.max_len = max_len
+
+        self.text = ""
+
+    def add_text(self, char: str):
+        if char == "\b":
+            if len(self.text) != 0:
+                self.text = self.text[:len(self.text) - 1]
+        else:
+            self.text = self.text + char
+        print(self.text)
+
+    def get_text(self):
+        return self.text
+
+    def draw_spec(self, window: PygameEX):
+        pygame.draw.rect(window, self.color, self.rect)
+
+        if len(self.text) != 0:
+            text_surf = self.font.render(self.text, True, self.text_color)
+            text_rect = text_surf.get_rect(topleft=self.rect.topleft)
+        else:
+            text_surf = self.font.render(self.default_text, True, self.default_text_color)
+            text_rect = text_surf.get_rect(topleft=self.rect.topleft)
+
+        text_rect.x = text_rect.x + 3
+        window.blit(text_surf, text_rect)

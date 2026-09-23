@@ -5,7 +5,7 @@ from enum import Enum
 from .screen import *
 
 class PygameEX:
-    def __init__(self, window_w: int, window_h: int, title: str = "Pygame Project", screen: Screen = None):
+    def __init__(self, window_w: int, window_h: int, title: str = "Pygame Project", screen: Screen = None, interrupts_enabled = True):
         pygame.init()
         self.window = pygame.display.set_mode((window_w, window_h))
         pygame.display.set_caption(title)
@@ -13,6 +13,11 @@ class PygameEX:
         self.screen = screen
         self.elements: list[ScreenObject] = []
         self.external_interrupts = {"keyboard": keyboard.init_interrupt_dict()}
+
+        self.in_textbox = False
+        self.active_textbox: ScreenTextBox = None
+
+        self.interrupts_enabled = interrupts_enabled
 
         self.event_queue = []
 
@@ -32,21 +37,44 @@ class PygameEX:
         for pygame_event in pygame.event.get():
             try:
                 event = _Event(pygame_event)
-                if event.type == event_types.LEFT_CLICK:
+                if (event.type == event_types.LEFT_CLICK) & self.interrupts_enabled:
+
+                    self.in_textbox = False
+                    self.active_textbox = None
+
                     for element in self.screen.elements:
                         if type(element) == ScreenButton:
                             (x, y) = event.pos
                             if element.click_callback != None and element.was_clicked(x, y, self):
                                 element.click_callback()
 
+                        if (type(element) == ScreenTextBox) & element.was_clicked(event.pos[0], event.pos[1], self):
+                            self.in_textbox = True
+                            self.active_textbox = element
+
+
                     for element in self.elements:
                         if type(element) == ScreenButton:
                             (x, y) = event.pos
-                            if element.click_callback != None and element.was_clicked(x, y, self):
+                            if element.click_callback != None and element.was_clicked(event.pos[0], event.pos[1], self):
                                 element.click_callback()
 
+                        if (type(element) == ScreenTextBox) & element.was_clicked(x, y, self):
+                            self.in_textbox = True
+                            self.active_textbox = element
+
+
                 if event.type == event_types.KEY_PRESS:
-                    if not self.external_interrupts["keyboard"][event.key] == None:
+                    if self.in_textbox:
+                        if event.key == keyboard.Keys.K_ESCAPE:
+                            self.in_textbox = False
+                            self.active_textbox = None
+                            continue
+
+                        self.active_textbox.add_text(event.char)
+                        continue
+
+                    if (not self.external_interrupts["keyboard"][event.key] == None) & self.interrupts_enabled:
                         self.external_interrupts["keyboard"][event.key]()
                 self.event_queue.append(event)
             except ValueError:
@@ -81,6 +109,9 @@ class PygameEX:
 
     def use_screen(self, screen: Screen):
         self.screen = screen
+
+    def disable_interrupts(self):
+        self.interrupts_enabled = False
 
 
 
@@ -119,7 +150,8 @@ class _Event:
         elif event.button == 3:
             return event_types("right_click")
 
-    def __key_press(self, event: event_types):
+    def __key_press(self, event: pygame.event):
             self.key = keyboard.assign_key(event.key)
+            self.char = event.unicode
 
             return event_types("key_press")
