@@ -10,8 +10,12 @@ class Screen:
     def set_clear_color(self, color: tuple[int, int, int]):
         self.scclear_color = color
 
-    def add_element(self, element: ScreenObject):
-        self.elements.append(element)
+    def add_element(self, elements: ScreenObject | list[ScreenObject]):
+        if type(elements) == list:
+            for element in elements:
+                self.elements.append(element)
+        else:
+            self.elements.append(elements)
 
     def remove_element(self, element: ScreenObject):
         self.elements.pop(self.elements.index(element))
