@@ -2,24 +2,18 @@ import pygame
 from .screen_object import *
 from .keyboard import *
 from enum import Enum
+from .screen import *
 
 class PygameEX:
-    def __init__(self, screen_w: int, screen_h: int, title: str = "Pygame Project", clear_color: tuple[int, int, int] = (0, 0, 0)):
+    def __init__(self, window_w: int, window_h: int, title: str = "Pygame Project", screen: Screen = None):
         pygame.init()
-        self.window = pygame.display.set_mode((screen_w, screen_h))
+        self.window = pygame.display.set_mode((window_w, window_h))
         pygame.display.set_caption(title)
 
-        self.clear_color = clear_color
-        self.elements = []
+        self.screen = screen
+        self.elements: list[ScreenObject] = []
         self.external_interrupts = {"keyboard": keyboard.init_interrupt_dict()}
 
-        self.screens = ["Screen 0"]
-        self.screen_data = [[]]
-        self.screen_interrupts = [{}]
-
-        self.transcendental_elements = []
-
-        self.active_screen = 0
         self.event_queue = []
 
     def get_events(self):
@@ -28,10 +22,10 @@ class PygameEX:
         return return_queue
 
     def refresh(self):
-        self.window.fill(self.clear_color)
-        for element in self.elements:
+        self.window.fill(self.screen.clear_color)
+        for element in self.screen.elements:
             element.draw(self.window)
-        for element in self.transcendental_elements:
+        for element in self.elements:
             element.draw(self.window)
         pygame.display.flip()
 
@@ -39,13 +33,13 @@ class PygameEX:
             try:
                 event = _Event(pygame_event)
                 if event.type == event_types.LEFT_CLICK:
-                    for element in self.elements:
+                    for element in self.screen.elements:
                         if type(element) == ScreenButton:
                             (x, y) = event.pos
                             if element.click_callback != None and element.was_clicked(x, y, self):
                                 element.click_callback()
 
-                    for element in self.transcendental_elements:
+                    for element in self.elements:
                         if type(element) == ScreenButton:
                             (x, y) = event.pos
                             if element.click_callback != None and element.was_clicked(x, y, self):
@@ -59,65 +53,34 @@ class PygameEX:
                 #This event is not implemented in the wrapper yet, so just ignore it :D
                 pass
 
-    def set_clear_color(self, color: tuple[int, int, int]):
-        self.clear_color = color
-
     def add_element(self, element: ScreenObject):
         self.elements.append(element)
 
     def remove_element(self, element: ScreenObject):
         self.elements.pop(self.elements.index(element))
 
-    def add_transcendental_element(self, element: ScreenObject):
-        self.transcendental_elements.append(element)
-
-    def remove_transcendental_element(self, element: ScreenObject):
-        self.transcendental_elements.pop(self.transcendental_elements.index(element))
-
     def get_element_index(self, element: ScreenObject):
         return self.elements.index(element)
 
-    def element_on_screen(self, element: ScreenObject):
-        return element in self.elements or element in self.transcendental_elements
+    def element_on_window(self, element: ScreenObject):
+        return element in self.elements or element in self.screen.elements
 
     def move_element_forward(self, element: ScreenObject, places: int = 1):
         element_index = self.elements.index(element)
         element = self.elements.pop(element_index)
         self.elements.insert(element_index + places, element)
 
-    def create_screen(self, name: str):
-        self.screens.append(name)
-        self.screen_data.append([])
-        self.screen_interrupts.append({"keyboard": keyboard.init_interrupt_dict()})
-
     def get_current_screen(self):
-        return self.screens[self.active_screen]
-
-    def swap_screens(self, new_screen_name: str):
-        self.screen_data[self.active_screen] = self.elements
-        self.screen_interrupts[self.active_screen] = self.external_interrupts
-
-        self.active_screen = self.screens.index(new_screen_name)
-
-        self.elements = self.screen_data[self.active_screen]
-        self.external_interrupts = self.screen_interrupts[self.active_screen]
-
-    def destroy_screen(self, screen_name: str):
-        current_screen_name = self.screens[self.active_screen]
-        screen_to_pop = self.screens.index(screen_name)
-        self.screens.pop(screen_to_pop)
-        self.screen_data.pop(screen_to_pop)
-        self.screen_interrupts.pop(screen_to_pop)
-        self.active_screen = self.screens.index(current_screen_name)
-
-    def screen_exists(self, screen_name: str):
-        return screen_name in self.screens
+        return self.screen
 
     def get_mouse_pos(self):
         return pygame.mouse.get_pos()
 
     def register_keyboard_interrupt(self, key: keyboard.Keys, function):
         self.external_interrupts["keyboard"][key] = function
+
+    def use_screen(self, screen: Screen):
+        self.screen = screen
 
 
 
