@@ -5,12 +5,13 @@ from enum import Enum
 from .screen import *
 
 class PygameEX:
-    def __init__(self, window_w: int, window_h: int, title: str = "Pygame Project", screen: Screen = None, interrupts_enabled = True):
+    def __init__(self, window_w: int, window_h: int, title: str = "Pygame Project", screen: Screen = Screen(), interrupts_enabled = True):
         pygame.init()
         self.window = pygame.display.set_mode((window_w, window_h))
         pygame.display.set_caption(title)
 
-        self.screen = screen
+
+        self.screen = screen    #its fine if it gets set to a defualt empty screen bc you can't really access it through this (ig you could but like no)
         self.elements: list[ScreenObject] = []
         self.external_interrupts = {"keyboard": keyboard.init_interrupt_dict()}
 

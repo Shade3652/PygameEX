@@ -141,8 +141,8 @@ class ScreenTextBox(ScreenObject):
             if len(self.text) != 0:
                 self.text = self.text[:len(self.text) - 1]
         else:
-            self.text = self.text + char
-        print(self.text)
+            if self.font.size(self.text + char)[0] <= self.rect.width - 3:
+                self.text = self.text + char
 
     def get_text(self):
         return self.text
