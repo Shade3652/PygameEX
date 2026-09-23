@@ -27,7 +27,7 @@ class ScreenObject():
     def update_wh(self, new_w: int, new_h: int):
         self.rect = pygame.Rect(self.rect.left, self.rect.top, new_w, new_h)
 
-    
+
     def was_clicked(self, x: int, y: int, window: PygameEX):
         return  self.rect.collidepoint((x, y)) and window.element_on_window(self)
 
@@ -68,7 +68,12 @@ class ScreenText(ScreenObject):
         return self.text_size
     def get_font(self):
         return self.font.name
-    
+
+    def add_text(self, text):
+        self.text = self.text + text
+        (width, height) = self.font.size(text)
+        self.rect = pygame.Rect(self.rect.left, self.rect.top, width, height)
+
 
     def draw_spec(self, screen: PygameEX):
         text_surf = self.font.render(self.text, True, self.color)
@@ -100,7 +105,7 @@ class ScreenImage(ScreenObject):
 class ScreenButton(ScreenObject):
 
     #Initializes a button with the desired parameretrs & flags
-    def __init__(self, x: int, y: int, width: int, height: int, text: str, text_size: int = 20, 
+    def __init__(self, x: int, y: int, width: int, height: int, text: str, text_size: int = 20,
                  text_font: str = "Arial", text_color: tuple[int, int, int] = (0, 0, 0), color: tuple[int, int, int] = (255, 255, 255), click_callback = None):
         #This is all basic object init stuff
         super().__init__(x, y, width, height)
@@ -123,7 +128,7 @@ class ScreenButton(ScreenObject):
         window.blit(text_surf, text_rect)
 
 class ScreenTextBox(ScreenObject):
-    def __init__(self, x: int, y: int, width: int, height: int, max_len: int = None, color: tuple[int, int, int] = (255, 255, 255), default_text: str = "Type here", 
+    def __init__(self, x: int, y: int, width: int, height: int, max_len: int = None, color: tuple[int, int, int] = (255, 255, 255), default_text: str = "Type here",
                  default_text_color: tuple[int, int, int] = (175, 175, 175), text_color: tuple[int, int, int] = (0, 0, 0), text_size: int = 20, text_font: str = "Arial"):
 
         super().__init__(x, y, width, height)
