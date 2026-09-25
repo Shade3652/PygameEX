@@ -9,73 +9,136 @@ if TYPE_CHECKING:   #This is a step that comes after python evaluates all import
 
 class ScreenObject():
     def __init__(self, x, y, width, height):
+        """Initializes a ScreenObject class. Not recommended to be called directly, as this should be used exclusivley by classes that inherit ScreenObject."""
         self.rect = pygame.Rect(x, y, width, height)
 
     def get_x(self):
+        """Returns the x coordinate of the top-left corner of a ScreenObject"""
         return self.rect.left
     def get_y(self):
+        """Returns the y coordinate of the top-left corner of a ScreenObject"""
         return self.rect.top
     def get_width(self):
+        """Returns width of a ScreenObject"""
         return self.rect.width
     def get_height(self):
+        """Returns height of a ScreenObject"""
         return self.rect.height
     def get_text(self):
+        """Returns the text of any ScreenObject that has a text field"""
         return self.text
 
     def update_pos(self, new_x: int, new_y: int):
+        """Updates the x & y of a ScreenObject"""
         self.rect = pygame.Rect(new_x, new_y, self.get_width(), self.get_height())
     def update_wh(self, new_w: int, new_h: int):
+        """Updates the width & height of a ScreenObject. Not recommended for usage unless you know what you're doing."""
         self.rect = pygame.Rect(self.rect.left, self.rect.top, new_w, new_h)
 
 
     def was_clicked(self, x: int, y: int, window: PygameEX):
+        """Returns True if the ScreenObject was clicked"""
         return  self.rect.collidepoint((x, y)) and window.element_on_window(self)
 
-    def draw(self, window: PygameEX):
+    def draw(self, window: pygame.surface.Surface):
+        """Draws the ScreenObject onto the canvas. do NOT call this unless you REALLY, REALLY know what you're doing"""
         self.draw_spec(window)
 
 
 class ScreenText(ScreenObject):
     def __init__(self, text: str, x: int, y: int, text_font: str = "Arial", text_size: int = 20, color: tuple[int, int, int] = (0, 0, 0)):
+        """Initiaizes a ScreenText Object"""
 
         self.font = pygame.font.SysFont(text_font, text_size)
         self.color = color
         self.text_size = text_size
 
-        (width, height) = self.font.size(text)
-
-        super().__init__(x, y, width, height)
         self.text = text
 
+        max_width = 0
+        for line in self.text.splitlines():
+            if self.font.size(line)[0] > max_width:
+                max_width = self.font.size(line)[0]
+
+        height = 0
+        for line in self.text.splitlines():
+            height = height + self.font.size(line)[1]
+
+        super().__init__(x, y, max_width, height)
+
+    def add_text(self, char: str):
+        """Appends the given text to the """
+        if char == "\b":
+            if len(self.text) != 0:
+                self.text = self.text[:len(self.text) - 1]
+        else:
+            self.text = self.text + char
+            lines = self.text.splitlines()
+            max_width = 0
+            for line in lines:
+                if self.font.size(line)[0] > max_width:
+                    max_width = self.font.size(line)[0]
+
+        height = 0
+        for line in self.text.splitlines():
+            height = height + self.font.size(line)[1]
+
+        self.update_wh(max_width, height)
 
     def update_text(self, text: str):
+        """Sets the ScreenText's text to the given text"""
         self.text = text
-        (width, height) = self.font.size(text)
-        self.rect = pygame.Rect(self.rect.left, self.rect.top, width, height)
+        max_width = 0
+        for line in self.text.splitlines():
+            if self.font.size(line)[0] > max_width:
+                max_width = self.font.size(line)[0]
+
+        height = 0
+        for line in self.text.splitlines():
+            height = height + self.font.size(line)[1]
+
+        self.update_wh(max_width, height)
+
 
     def update_font(self, font: str):
+        """Updates the font to the supplied one. Look in the system fonts folder to see what options are availible."""
         self.font = pygame.font.SysFont(font, self.text_size)
-        (width, height) = self.font.size(self.text)
-        self.update_wh(width, height)
+        max_width = 0
+        for line in self.text.splitlines():
+            if self.font.size(line)[0] > max_width:
+                max_width = self.font.size(line)[0]
+
+        height = 0
+        for line in self.text.splitlines():
+            height = height + self.font.size(line)[1]
+
+        self.update_wh(max_width, height)
+
 
     def update_text_size(self, size: int):
-            self.text_size = size
-            self.font = pygame.font.SysFont(self.font.name, self.text_size)
-            (width, height) = self.font.size(self.text)
-            self.update_wh(width, height)
+        """Updates the text size"""
+        self.text_size = size
+        self.font = pygame.font.SysFont(self.font.name, self.text_size)
+        max_width = 0
+        for line in self.text.splitlines():
+            if self.font.size(line)[0] > max_width:
+                max_width = self.font.size(line)[0]
+
+        height = 0
+        for line in self.text.splitlines():
+            height = height + self.font.size(line)[1]
+        self.update_wh(max_width, height)
+
 
     def get_text_size(self):
+        """Returns the text size"""
         return self.text_size
     def get_font(self):
+        """Returns the font name"""
         return self.font.name
 
-    def add_text(self, text):
-        self.text = self.text + text
-        (width, height) = self.font.size(text)
-        self.rect = pygame.Rect(self.rect.left, self.rect.top, width, height)
 
-
-    def draw_spec(self, screen: PygameEX):
+    def draw_spec(self, screen: pygame.surface.Surface):
         text_surf = self.font.render(self.text, True, self.color)
         text_rect = text_surf.get_rect(center=self.rect.center)
         screen.blit(text_surf, text_rect)
@@ -97,7 +160,7 @@ class ScreenImage(ScreenObject):
             (width, height) = self.image.get_size()
             self.update_wh(width, height)
 
-    def draw_spec(self, screen: PygameEX):
+    def draw_spec(self, screen: pygame.surface.Surface):
         screen.blit(self.image, (self.get_x(), self.get_y()))
 
 
@@ -121,7 +184,7 @@ class ScreenButton(ScreenObject):
         self.font = pygame.font.SysFont(text_font, text_size)
 
     #Draws the button on the given surface
-    def draw_spec(self, window: PygameEX):
+    def draw_spec(self, window: pygame.surface.Surface):
         pygame.draw.rect(window, self.color, self.rect)
         text_surf = self.font.render(self.text, True, self.text_color)
         text_rect = text_surf.get_rect(center=self.rect.center)
@@ -152,7 +215,10 @@ class ScreenTextBox(ScreenObject):
     def get_text(self):
         return self.text
 
-    def draw_spec(self, window: PygameEX):
+    def update_color(self, color: tuple[int, int, int]):
+        self.color = color
+
+    def draw_spec(self, window: pygame.surface.Surface):
         pygame.draw.rect(window, self.color, self.rect)
 
         if len(self.text) != 0:
