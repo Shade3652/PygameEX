@@ -1,11 +1,16 @@
+from __future__ import annotations  # 1. MUST BE LINE 1 OF THE FILE
+from typing import TYPE_CHECKING
 from PygameEX import keyboard
 from PygameEX import ScreenObject
+
+if TYPE_CHECKING:
+    from PygameEX import event_types
 
 class Screen:
     def __init__(self, clear_color: tuple[int, int, int] = (0, 0, 0)):
         self.clear_color = clear_color
         self.elements: list[ScreenObject] = []
-        self.external_interrupts = {"keyboard": keyboard.init_interrupt_dict()}
+        self.external_interrupts = {"keyboard": {}, "window": {}}
 
     def set_clear_color(self, color: tuple[int, int, int]):
         self.scclear_color = color
@@ -33,3 +38,6 @@ class Screen:
 
     def register_keyboard_interrupt(self, key: keyboard.Keys, function):
         self.external_interrupts["keyboard"][key] = function
+
+    def register_window_interrupt(self, event: event_types, function):
+        self.external_interrupts["window"][event] = function
