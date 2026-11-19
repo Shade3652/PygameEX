@@ -230,3 +230,15 @@ class ScreenTextBox(ScreenObject):
 
         text_rect.x = text_rect.x + 3
         window.blit(text_surf, text_rect)
+
+
+class ScreenSurface(ScreenObject):
+    def __init__(self, x: int, y: int, surface: pygame.Surface):
+
+        self.surface = surface
+        width = self.surface.width
+        height = self.surface.height
+        super().__init__(x, y, width, height)
+
+    def draw_spec(self, window: pygame.surface.Surface):
+        window.blit(self.surface, self.get_x(), self.get_y())
