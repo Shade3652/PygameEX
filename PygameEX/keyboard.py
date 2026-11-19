@@ -120,10 +120,3 @@ def assign_key(keycode):
         return Keys(shift_replacments[extra_keycodes.index(keycode)])
     else:
         return Keys(keycode)
-
-def init_interrupt_dict():
-    interrupt_dict = {}
-    for key in Keys:
-        interrupt_dict[key] = None
-
-    return interrupt_dict
