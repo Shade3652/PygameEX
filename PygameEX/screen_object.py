@@ -241,4 +241,4 @@ class ScreenSurface(ScreenObject):
         super().__init__(x, y, width, height)
 
     def draw_spec(self, window: pygame.surface.Surface):
-        window.blit(self.surface, self.get_x(), self.get_y())
+        window.blit(self.surface, (self.get_x(), self.get_y()))
