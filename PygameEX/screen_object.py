@@ -11,6 +11,7 @@ class ScreenObject():
     def __init__(self, x, y, width, height):
         """Initializes a ScreenObject class. Not recommended to be called directly, as this should be used exclusivley by classes that inherit ScreenObject."""
         self.rect = pygame.Rect(x, y, width, height)
+        self.showing = True
 
     def get_x(self):
         """Returns the x coordinate of the top-left corner of a ScreenObject"""
@@ -28,6 +29,13 @@ class ScreenObject():
         """Returns the text of any ScreenObject that has a text field"""
         return self.text
 
+    def hide(self):
+        self.showing = False
+    def show(self):
+        self.showing = True
+    def is_showing(self) -> bool:
+        return self.is_showing
+
     def update_pos(self, new_x: int, new_y: int):
         """Updates the x & y of a ScreenObject"""
         self.rect = pygame.Rect(new_x, new_y, self.get_width(), self.get_height())
@@ -40,9 +48,13 @@ class ScreenObject():
         """Returns True if the ScreenObject was clicked"""
         return  self.rect.collidepoint((x, y)) and window.element_on_window(self)
 
-    def draw(self, window: pygame.surface.Surface):
+    def draw(self, window: pygame.surface.Surface, mod: tuple[int, int] = (0, 0)):
         """Draws the ScreenObject onto the canvas. do NOT call this unless you REALLY, REALLY know what you're doing"""
+        self.rect.x = self.rect.x + mod[0]
+        self.rect.y = self.rect.y + mod[1]
         self.draw_spec(window)
+        self.rect.x = self.rect.x - mod[0]
+        self.rect.y = self.rect.y - mod[1]
 
 
 class ScreenText(ScreenObject):
@@ -242,3 +254,13 @@ class ScreenSurface(ScreenObject):
 
     def draw_spec(self, window: pygame.surface.Surface):
         window.blit(self.surface, (self.get_x(), self.get_y()))
+
+class Parent(ScreenObject):
+    def __init__(self, x: int, y: int, objects: list[ScreenObject] = []):
+        super().__init__(x, y, 0, 0)
+        self.elements = objects
+
+    def draw_spec(self, window: pygame.surface.Surface, mod: tuple[int, int] = (0, 0)):
+        for element in self.elements:
+            if element.is_showing():
+                element.draw(window, (mod[0] + self.get_x(), mod[1] + self.get_y()))
