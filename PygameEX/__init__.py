@@ -13,7 +13,7 @@ class PygameEX:
 
         self.screen = screen    #its fine if it gets set to a defualt empty screen bc you can't really access it through this (ig you could but like no)
         self.elements: list[ScreenObject] = []
-        self.external_interrupts = {"keyboard": keyboard.init_interrupt_dict()}
+        self.external_interrupts = {"keyboard": {}, "window": {}}
 
         self.in_textbox = False
         self.active_textbox: ScreenTextBox = None
@@ -75,8 +75,18 @@ class PygameEX:
                         self.active_textbox.add_text(event.char)
                         continue
 
-                    if (not self.external_interrupts["keyboard"][event.key] == None) & self.interrupts_enabled:
+                    if (event.key in self.external_interrupts["keyboard"][event.key]) & self.interrupts_enabled:
                         self.external_interrupts["keyboard"][event.key]()
+
+
+
+                if event.type in self.screen.external_interrupts["window"]:
+                    self.screen.external_interrupts["window"][event.type]()
+
+                if event.type in self.external_interrupts["window"]:
+                    self.external_interrupts["window"][event.type]()
+
+
                 self.event_queue.append(event)
             except ValueError:
                 #This event is not implemented in the wrapper yet, so just ignore it :D
@@ -111,6 +121,9 @@ class PygameEX:
 
     def register_keyboard_interrupt(self, key: keyboard.Keys, function):
         self.external_interrupts["keyboard"][key] = function
+
+    def register_window_interrupt(self, event: event_types, function):
+        self.external_interrupts["window"][event] = function
 
     def use_screen(self, screen: Screen):
         self.screen = screen
