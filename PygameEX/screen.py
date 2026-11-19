@@ -12,6 +12,8 @@ class Screen:
         self.elements: list[ScreenObject] = []
         self.external_interrupts = {"keyboard": {}, "window": {}}
 
+        self.volatile_elements: list[ScreenObject] = []
+
     def set_clear_color(self, color: tuple[int, int, int]):
         self.scclear_color = color
 
@@ -30,6 +32,9 @@ class Screen:
 
     def element_on_screen(self, element: ScreenObject):
         return element in self.elements
+
+    def add_volatile_element(self, element: ScreenObject):
+        self.volatile_elements.append(element)
 
     def move_element_forward(self, element: ScreenObject, places: int = 1):
         element_index = self.elements.index(element)
