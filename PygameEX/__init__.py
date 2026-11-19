@@ -16,6 +16,8 @@ class PygameEX:
         self.elements: list[ScreenObject] = []
         self.external_interrupts = {"keyboard": {}, "window": {}}
 
+        self.volatile_elements: list[ScreenObject] = []
+
         self.in_textbox = False
         self.active_textbox: ScreenTextBox = None
 
@@ -23,7 +25,7 @@ class PygameEX:
 
         self.event_queue = []
 
-    def get_events(self):
+    def get_events(self) -> _Event:
         return_queue = self.event_queue
         self.event_queue = []
         return return_queue
@@ -31,9 +33,17 @@ class PygameEX:
     def refresh(self):
         self.window.fill(self.screen.clear_color)
         for element in self.screen.elements:
-            element.draw(self.window)
+            if element.is_showing():
+                element.draw(self.window)
         for element in self.elements:
-            element.draw(self.window)
+            if element.is_showing():
+                element.draw(self.window)
+        for element in self.volatile_elements:
+            if element.is_showing():
+                element.draw(self.window)
+        for element in self.screen.volatile_elements:
+            if element.is_showing():
+                element.draw(self.window)
         pygame.display.flip()
 
         for pygame_event in pygame.event.get():
@@ -92,6 +102,8 @@ class PygameEX:
             except ValueError:
                 #This event is not implemented in the wrapper yet, so just ignore it :D
                 pass
+        self.volatile_elements = []
+        self.screen.volatile_elements = []
 
     def add_element(self, elements: ScreenObject | list[ScreenObject]):
         if type(elements) == list:
@@ -103,10 +115,10 @@ class PygameEX:
     def remove_element(self, element: ScreenObject):
         self.elements.pop(self.elements.index(element))
 
-    def get_element_index(self, element: ScreenObject):
+    def get_element_index(self, element: ScreenObject) -> int:
         return self.elements.index(element)
 
-    def element_on_window(self, element: ScreenObject):
+    def element_on_window(self, element: ScreenObject) -> ScreenObject:
         return element in self.elements or element in self.screen.elements
 
     def move_element_forward(self, element: ScreenObject, places: int = 1):
@@ -114,10 +126,13 @@ class PygameEX:
         element = self.elements.pop(element_index)
         self.elements.insert(element_index + places, element)
 
-    def get_current_screen(self):
+    def add_volatile_element(self, element: ScreenObject):
+        self.volatile_elements.append(element)
+
+    def get_current_screen(self) -> Screen:
         return self.screen
 
-    def get_mouse_pos(self):
+    def get_mouse_pos(self) -> tuple[int, int]:
         return pygame.mouse.get_pos()
 
     def register_keyboard_interrupt(self, key: keyboard.Keys, function):
