@@ -126,8 +126,12 @@ class PygameEX:
         element = self.elements.pop(element_index)
         self.elements.insert(element_index + places, element)
 
-    def add_volatile_element(self, element: ScreenObject):
-        self.volatile_elements.append(element)
+    def add_volatile_element(self, elements: ScreenObject | list[ScreenObject]):
+            if type(elements) == list:
+                for element in elements:
+                    self.volatile_elements.append(element)
+            else:
+                self.volatile_elements.append(elements)
 
     def get_current_screen(self) -> Screen:
         return self.screen
