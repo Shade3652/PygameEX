@@ -33,8 +33,12 @@ class Screen:
     def element_on_screen(self, element: ScreenObject):
         return element in self.elements
 
-    def add_volatile_element(self, element: ScreenObject):
-        self.volatile_elements.append(element)
+    def add_volatile_element(self, elements: ScreenObject | list[ScreenObject]):
+        if type(elements) == list:
+            for element in elements:
+                self.volatile_elements.append(element)
+        else:
+            self.volatile_elements.append(elements)
 
     def move_element_forward(self, element: ScreenObject, places: int = 1):
         element_index = self.elements.index(element)
